@@ -53,9 +53,52 @@ var (
 	}
 
 	sliceTests = map[string]testCase{
-		"Slice": {
+		"Slice of strings": {
 			inputValue:     []string{"this", "is", "quite", "crufty"},
-			expectedOutput: "barf",
+			expectedOutput: "  VALUE   \n+--------+\n  this    \n  is      \n  quite   \n  crufty  \n",
+		},
+		"Slice of structs": {
+			inputValue: []struct {
+				name   string
+				age    int
+				crufty bool
+			}{
+				{
+					"prawn_struct_1",
+					1000,
+					true,
+				},
+				{
+					"prawn_struct_2",
+					2000,
+					false,
+				},
+				{
+					"prawn_struct_3",
+					3000,
+					true,
+				},
+			},
+			expectedOutput: "  AGE  | CRUFTY |      NAME       \n+------+--------+----------------+\n  1000 | true   | prawn_struct_1  \n  2000 | false  | prawn_struct_2  \n  3000 | true   | prawn_struct_3  \n",
+		},
+		"Slice of pointers": {
+			inputValue: []*struct {
+				name   string
+				age    int
+				crufty bool
+			}{
+				{
+					"prawn_struct_ptr_1",
+					1000,
+					true,
+				},
+				{
+					"prawn_struct_ptr_2",
+					2000,
+					false,
+				},
+			},
+			expectedOutput: "  AGE  | CRUFTY |        NAME         \n+------+--------+--------------------+\n  1000 | true   | prawn_struct_ptr_1  \n  2000 | false  | prawn_struct_ptr_2  \n",
 		},
 	}
 

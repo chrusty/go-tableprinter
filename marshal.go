@@ -7,47 +7,45 @@ import (
 
 // Marshal turns an interface into a text table:
 func (p *Printer) Marshal(value interface{}) ([]byte, error) {
-	kindOfValue := reflect.TypeOf(value).Kind()
+
+	// Turn the value into a table:
+	table, err := p.makeTable(value)
+	if err != nil {
+		return nil, err
+	}
+
+	return table.bytes(p.borders)
+}
+
+func (p *Printer) makeTable(value interface{}) (*table, error) {
 
 	// Take a different approach depending on the type of data that was provided:
-	switch kindOfValue {
+	switch reflect.TypeOf(value).Kind() {
 
 	// Maps get turned into a single-row table:
 	case reflect.Map:
-		table, err := p.marshalMapValue(value)
-		if err != nil {
-			return nil, err
-		}
-		return table.bytes(p.borders)
+		return p.tableFromMapValue(value)
 
 	// For pointers we just recurse on their interface:
 	case reflect.Ptr:
-		return p.Marshal(reflect.ValueOf(value).Elem().Interface())
+		return p.makeTable(reflect.ValueOf(value).Elem().Interface())
 
 	// Slices get turned into a multi-row table:
 	case reflect.Slice:
-		return nil, fmt.Errorf("Unsupported type (%s)", kindOfValue)
+		return p.tableFromSliceValue(value)
 
 	// Structs get turned into a single-row table:
 	case reflect.Struct:
-		table, err := p.marshalStructValue(value)
-		if err != nil {
-			return nil, err
-		}
-		return table.bytes(p.borders)
+		return p.tableFromStructValue(value)
 
 	// The default is a one-row one-column table:
 	default:
-		table, err := p.marshalBasicValue(value)
-		if err != nil {
-			return nil, err
-		}
-		return table.bytes(p.borders)
+		return p.tableFromBasicValue(value)
 	}
 }
 
-// marshalBasicValue turns an interface into a single column in a single row:
-func (p *Printer) marshalBasicValue(value interface{}) (*table, error) {
+// tableFromBasicValue turns an interface into a single column in a single row:
+func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 	var table = new(table)
 	var row = make(tableRow)
 
@@ -59,12 +57,12 @@ func (p *Printer) marshalBasicValue(value interface{}) (*table, error) {
 	return table, nil
 }
 
-// marshalMapValue turns a map into a single-row table:
-func (p *Printer) marshalMapValue(value interface{}) (*table, error) {
+// tableFromMapValue turns a map into a single-row table:
+func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 	var table = new(table)
 	var row = make(tableRow)
 
-	// Turn the interface into a map[string]interface{}:
+	// Turn the value into a map[string]interface{}:
 	assertedMap, ok := value.(map[string]interface{})
 	if !ok {
 		return nil, ErrAssertion
@@ -88,8 +86,30 @@ func (p *Printer) marshalMapValue(value interface{}) (*table, error) {
 	return table, nil
 }
 
-// marshalStructValue turns a struct into a single-row table:
-func (p *Printer) marshalStructValue(value interface{}) (*table, error) {
+// tableFromSliceValue turns a slice into a multi-row table:
+func (p *Printer) tableFromSliceValue(value interface{}) (*table, error) {
+	var table = new(table)
+
+	// Reflect the value to gain access to its elements:
+	reflectedValue := reflect.ValueOf(value)
+
+	// Turn each entry into a table (with a row that we can take):
+	for i := 0; i < reflectedValue.Len(); i++ {
+		tempTable, err := p.makeTable(reflectedValue.Index(i).Interface())
+		if err != nil {
+			return nil, err
+		}
+
+		// Add the new row and headers to our table:
+		table.headers = tempTable.headers
+		table.addRow(tempTable.rows[0])
+	}
+
+	return table, nil
+}
+
+// tableFromStructValue turns a struct into a single-row table:
+func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 	var table = new(table)
 	var row = make(tableRow)
 

@@ -7,11 +7,14 @@ Print a formatted table from GoLang interfaces
 * Requires no modification to existing data structures
 
 ## Usage
-...
+* Make a *Printer (`tp := tableprinter.New()`)
+* Make a *Printer with a custom output (`tp := rablePrinter.New().WithOutput(os.Stderr)`)
+* Print a table from an interface (`tp.Print(interface)`)
+* Marshal a table from an interface if you'd rather do something else with the output (`tp.Marshal(interface)`)
 
 ### Todo
 * ~~Handle generic interfaces (default)~~
 * ~~Handle pointers~~
 * ~~Handle structs~~
 * ~~Handle maps~~
-* Handle slices of the above
+* ~~Handle slices of the above~~
