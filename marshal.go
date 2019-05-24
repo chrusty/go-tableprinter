@@ -73,7 +73,13 @@ func (p *Printer) marshalMapValue(value interface{}) (*table, error) {
 	// Add the map fields to the table:
 	for fieldName, fieldValue := range assertedMap {
 		table.addHeader(fieldName)
-		row[fieldName] = fmt.Sprintf("%v", fieldValue)
+
+		// Handle pointers differently:
+		if reflect.TypeOf(fieldValue).Kind() == reflect.Ptr {
+			row[fieldName] = fmt.Sprintf("%v", reflect.ValueOf(fieldValue).Elem())
+		} else {
+			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		}
 	}
 
 	// Add the row to the table:
@@ -94,9 +100,16 @@ func (p *Printer) marshalStructValue(value interface{}) (*table, error) {
 	// Add the struct fields to the table:
 	for i := 0; i < reflectedType.NumField(); i++ {
 		fieldName := reflectedType.Field(i).Name
-		fieldValue := reflectedValue.Field(i)
 		table.addHeader(fieldName)
-		row[fieldName] = fmt.Sprintf("%v", fieldValue)
+
+		// Handle pointers differently:
+		if reflectedType.Field(i).Type.Kind() == reflect.Ptr {
+			fieldValue := reflectedValue.Field(i).Elem()
+			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		} else {
+			fieldValue := reflectedValue.Field(i)
+			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		}
 	}
 
 	// Add the row to the table:

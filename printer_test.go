@@ -48,7 +48,14 @@ var (
 				"age":    new(int),
 				"crufty": true,
 			},
-			expectedOutput: "  AGE  | CRUFTY |   NAME     \n+------+--------+-----------+\n  7654 | true   | prawn_map  \n",
+			expectedOutput: "  AGE | CRUFTY |   NAME     \n+-----+--------+-----------+\n    0 | true   | prawn_map  \n",
+		},
+	}
+
+	sliceTests = map[string]testCase{
+		"Slice": {
+			inputValue:     []string{"this", "is", "quite", "crufty"},
+			expectedOutput: "barf",
 		},
 	}
 
@@ -101,8 +108,10 @@ func TestTablePrinter(t *testing.T) {
 	tablePrinter := tableprinter.New().WithOutput(outputBuffer)
 	assert.NotNil(t, tablePrinter)
 
+	// Test various types of input:
 	testPrint(t, tablePrinter, outputBuffer, basicTests)
 	testPrint(t, tablePrinter, outputBuffer, mapTests)
+	testPrint(t, tablePrinter, outputBuffer, sliceTests)
 	testPrint(t, tablePrinter, outputBuffer, structTests)
 }
 
