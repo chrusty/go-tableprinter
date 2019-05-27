@@ -13,6 +13,19 @@ type testCase struct {
 	inputValue     interface{}
 }
 
+type nestedCruft struct {
+	cruftiness float32
+	name       string
+}
+
+type complexStructure struct {
+	name     string
+	crufts   []*nestedCruft
+	weight   int
+	crufty   *bool
+	shitNuts map[string]interface{}
+}
+
 var (
 	basicTests = map[string]testCase{
 		"Basic string": {
@@ -152,10 +165,11 @@ func TestTablePrinter(t *testing.T) {
 	assert.NotNil(t, tablePrinter)
 
 	// Test various types of input:
-	// testPrint(t, tablePrinter, outputBuffer, basicTests)
-	// testPrint(t, tablePrinter, outputBuffer, mapTests)
-	// testPrint(t, tablePrinter, outputBuffer, sliceTests)
+	testPrint(t, tablePrinter, outputBuffer, basicTests)
+	testPrint(t, tablePrinter, outputBuffer, mapTests)
+	testPrint(t, tablePrinter, outputBuffer, sliceTests)
 	testPrint(t, tablePrinter, outputBuffer, structTests)
+	testComplexStructure(t, tablePrinter, outputBuffer)
 }
 
 func testPrint(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffer, testCases map[string]testCase) {
@@ -177,4 +191,29 @@ func testPrint(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffe
 			assert.Equal(t, tc.expectedOutput, outputBuffer.String())
 		})
 	}
+}
+
+func testComplexStructure(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffer) {
+
+	testStructure := complexStructure{
+		name:   "Complex cruft",
+		crufty: new(bool),
+		weight: 99,
+		crufts: []*nestedCruft{
+			{
+				cruftiness: 33.3,
+				name:       "cruft1",
+			},
+		},
+		shitNuts: map[string]interface{}{
+			"crufty":     true,
+			"arse_balls": 55,
+			"anus": nestedCruft{
+				cruftiness: 66.6,
+				name:       "cruft2",
+			},
+		},
+	}
+
+	tableprinter.Print(testStructure)
 }

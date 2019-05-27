@@ -19,6 +19,7 @@ type Printer struct {
 func New() *Printer {
 
 	spewConfig := spew.NewDefaultConfig()
+	spewConfig.MaxDepth = 99
 	spewConfig.SortKeys = true
 	spewConfig.SpewKeys = true
 

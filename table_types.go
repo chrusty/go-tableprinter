@@ -1,7 +1,10 @@
 package tableprinter
 
 import (
+	"fmt"
 	"reflect"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func (p *Printer) makeTable(value interface{}) (*table, error) {
@@ -38,7 +41,7 @@ func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 
 	// Just add the one value:
 	table.addHeader(defaultFieldName)
-	row[defaultFieldName] = p.spewConfig.Sprintf("%v", value)
+	row[defaultFieldName] = fmt.Sprintf("%v", value)
 	table.addRow(row)
 
 	return table, nil
@@ -58,7 +61,13 @@ func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 	// Add the map fields to the table:
 	for fieldName, fieldValue := range assertedMap {
 		table.addHeader(fieldName)
-		row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue)
+		switch reflect.TypeOf(fieldValue).Kind() {
+		case reflect.Ptr:
+			fmt.Println("Ptr")
+			row[fieldName] = fmt.Sprintf("%v", reflect.ValueOf(fieldValue).Elem())
+		default:
+			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		}
 	}
 
 	// Add the row to the table:
@@ -94,6 +103,8 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 	var table = new(table)
 	var row = make(tableRow)
 
+	spew.Dump(value)
+
 	// Reflect the value to gain access to its elements:
 	reflectedType := reflect.TypeOf(value)
 	reflectedValue := reflect.ValueOf(value)
@@ -101,10 +112,28 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 	// Add the struct fields to the table:
 	for i := 0; i < reflectedType.NumField(); i++ {
 		fieldName := reflectedType.Field(i).Name
-		table.addHeader(fieldName)
 		fieldValue := reflectedValue.Field(i)
-		row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue)
-		p.spewConfig.Printf("%s => %v\n", fieldName, reflectedValue.Field(i))
+		table.addHeader(fieldName)
+
+		switch reflectedType.Field(i).Type.Kind() {
+		case reflect.Ptr:
+			fmt.Println("Ptr")
+			row[fieldName] = fmt.Sprintf("%v", fieldValue.Elem())
+		case reflect.Slice:
+			fmt.Println("Slice")
+			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		default:
+			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		}
+
+		// if fieldValue.CanInterface() {
+		// 	row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Interface())
+		// 	fmt.Printf("%v\n", fieldValue.Interface())
+		// } else {
+		// 	row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Elem())
+		// 	fmt.Printf("%v\n", fieldValue.String())
+		// }
+
 	}
 
 	// Add the row to the table:
