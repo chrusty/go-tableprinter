@@ -1,6 +1,7 @@
 package tableprinter
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -37,4 +38,33 @@ func (p *Printer) WithBorders() *Printer {
 func (p *Printer) WithOutput(output io.Writer) *Printer {
 	p.output = output
 	return p
+}
+
+// Print marshals an interface and prints it to the configured output:
+func (p *Printer) Print(value interface{}) error {
+
+	// Marshal the value to bytes:
+	marshaledBytes, err := p.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	// Now print the marshaled bytes:
+	if _, err := fmt.Fprint(p.output, string(marshaledBytes)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Marshal turns an interface into a text table:
+func (p *Printer) Marshal(value interface{}) ([]byte, error) {
+
+	// Turn the value into a table:
+	table, err := p.makeTable(value)
+	if err != nil {
+		return nil, err
+	}
+
+	return table.bytes(p.borders)
 }

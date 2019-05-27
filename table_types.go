@@ -4,18 +4,6 @@ import (
 	"reflect"
 )
 
-// Marshal turns an interface into a text table:
-func (p *Printer) Marshal(value interface{}) ([]byte, error) {
-
-	// Turn the value into a table:
-	table, err := p.makeTable(value)
-	if err != nil {
-		return nil, err
-	}
-
-	return table.bytes(p.borders)
-}
-
 func (p *Printer) makeTable(value interface{}) (*table, error) {
 
 	// Take a different approach depending on the type of data that was provided:
