@@ -173,16 +173,19 @@ func TestTablePrinter(t *testing.T) {
 	testPrint(t, tablePrinter, outputBuffer, sliceTests)
 	testPrint(t, tablePrinter, outputBuffer, structTests)
 	testComplexStructure(t, tablePrinter, outputBuffer)
+
+	// Test some calls to the default printer:
+	testDefaultPrinter(t)
 }
 
 func testPrint(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffer, testCases map[string]testCase) {
 	for name, tc := range testCases {
 
-		// Reset the buffer:
-		outputBuffer.Reset()
-
 		// Run the test with its own name:
 		t.Run(name, func(t *testing.T) {
+
+			// Reset the buffer:
+			outputBuffer.Reset()
 
 			// Print the value:
 			if err := tp.Print(tc.inputValue); err != nil {
@@ -197,37 +200,64 @@ func testPrint(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffe
 }
 
 func testComplexStructure(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffer) {
+	t.Run("Complex structure", func(t *testing.T) {
 
-	testStructure := complexStructure{
-		Name:   "Complex cruft",
-		Crufty: new(bool),
-		Weight: 99,
-		Cruft: nestedCruft{
-			Cruftiness: 99.99,
-			Name:       "cruft5",
-		},
-		Crufts: []*nestedCruft{
-			{
-				Cruftiness: 33.3,
-				Name:       "cruft1",
+		testStructure := complexStructure{
+			Name:   "Complex cruft",
+			Crufty: new(bool),
+			Weight: 99,
+			Cruft: nestedCruft{
+				Cruftiness: 99.99,
+				Name:       "cruft5",
 			},
-		},
-		CruftMap: map[string]interface{}{
-			"cruft_bool": true,
-			"cruft_int":  55,
-			"cruft_struct": nestedCruft{
-				Cruftiness: 66.6,
-				Name:       "cruft2",
+			Crufts: []*nestedCruft{
+				{
+					Cruftiness: 33.3,
+					Name:       "cruft1",
+				},
 			},
-		},
-	}
+			CruftMap: map[string]interface{}{
+				"cruft_bool": true,
+				"cruft_int":  55,
+				"cruft_struct": nestedCruft{
+					Cruftiness: 66.6,
+					Name:       "cruft2",
+				},
+			},
+		}
 
-	// Reset the buffer:
-	outputBuffer.Reset()
+		// Reset the buffer:
+		outputBuffer.Reset()
 
-	err := tp.Print(testStructure)
-	assert.NoError(t, err)
+		// Print the value:
+		err := tp.Print(testStructure)
+		assert.NoError(t, err)
 
-	// Compare the output:
-	assert.Equal(t, "cruft", outputBuffer.String())
+		// Compare the output:
+		assert.Equal(t, "      CRUFT      |                           CRUFTMAP                           |     CRUFTS      | CRUFTY |     NAME      | NESTEDCRUFT | WEIGHT | PRIVATEFIELD  \n+----------------+--------------------------------------------------------------+-----------------+--------+---------------+-------------+--------+--------------+\n  {99.99 cruft5} | map[cruft_bool:true cruft_int:55 cruft_struct:{66.6 cruft2}] | [{33.3 cruft1}] | false  | Complex cruft | <nil>       |     99 | <unexported>  \n", outputBuffer.String())
+	})
+}
+
+func testDefaultPrinter(t *testing.T) {
+	outputBuffer := bytes.NewBufferString("")
+
+	t.Run("Print nil to default printer", func(t *testing.T) {
+		err := tableprinter.Print(nil)
+		assert.Error(t, err)
+	})
+
+	t.Run("Print to default printer", func(t *testing.T) {
+		tableprinter.SetOutput(outputBuffer)
+		tableprinter.SetBorder(true)
+		err := tableprinter.Print("cruft")
+		assert.NoError(t, err)
+		assert.Equal(t, "+-------+\n| VALUE |\n+-------+\n| cruft |\n+-------+\n", outputBuffer.String())
+	})
+
+	t.Run("Marshal with default printer", func(t *testing.T) {
+		tableprinter.SetBorder(true)
+		marshaledBytes, err := tableprinter.Marshal("more cruft")
+		assert.NoError(t, err)
+		assert.Equal(t, "+------------+\n|   VALUE    |\n+------------+\n| more cruft |\n+------------+\n", string(marshaledBytes))
+	})
 }

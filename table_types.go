@@ -43,9 +43,8 @@ func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 
 	// Just add the one value:
 	table.addHeader(defaultFieldName)
-	row[defaultFieldName] = p.spewConfig.Sprintf("%v", value)
+	row.setField(defaultFieldName, p.spewConfig.Sprintf("%v", value))
 	table.addRow(row)
-
 	return table, nil
 }
 
@@ -67,18 +66,17 @@ func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 		case reflect.Ptr:
 			reflectedFieldValue := reflect.ValueOf(fieldValue).Elem()
 			if reflectedFieldValue.CanInterface() {
-				row[fieldName] = p.spewConfig.Sprintf("%v", reflectedFieldValue.Interface())
+				row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue.Interface()))
 				continue
 			}
-			row[fieldName] = p.spewConfig.Sprintf("%v", reflectedFieldValue)
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue))
 		default:
-			row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue)
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue))
 		}
 	}
 
 	// Add the row to the table:
 	table.addRow(row)
-
 	return table, nil
 }
 
@@ -121,7 +119,7 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 
 		// We can only work with exported fields:
 		if !fieldValue.CanInterface() {
-			row[fieldName] = "<unexported>"
+			row.setField(fieldName, unexportedFieldValue)
 			continue
 		}
 
@@ -131,18 +129,17 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 		// Pointers can be nil, so we need to check this (or just take the Elem() value):
 		case reflect.Ptr:
 			if fieldValue.IsNil() {
-				row[fieldName] = "<nil>"
+				row.setField(fieldName, nilFieldValue)
 				continue
 			}
-			row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Elem().Interface())
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Elem().Interface()))
 
 		default:
-			row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Interface())
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Interface()))
 		}
 	}
 
 	// Add the row to the table:
 	table.addRow(row)
-
 	return table, nil
 }

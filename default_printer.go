@@ -1,5 +1,7 @@
 package tableprinter
 
+import "io"
+
 var defaultTablePrinter *Printer
 
 func init() {
@@ -14,4 +16,14 @@ func Print(value interface{}) error {
 // Marshal turns an interface into a text table:
 func Marshal(value interface{}) ([]byte, error) {
 	return defaultTablePrinter.Marshal(value)
+}
+
+// SetBorder configures the default printer with a borders:
+func SetBorder(borders bool) {
+	defaultTablePrinter.borders = borders
+}
+
+// SetOutput configures the default printer with a specified output:
+func SetOutput(output io.Writer) {
+	defaultTablePrinter.output = output
 }

@@ -3,12 +3,18 @@ package tableprinter
 import (
 	"bytes"
 	"sort"
+	"strings"
 
 	"github.com/olekukonko/tablewriter"
 )
 
-// defaultFieldName is the column header for individual values that have no field name:
-const defaultFieldName = "value"
+const (
+	// defaultFieldName is the column header for individual values that have no field name:
+	defaultFieldName     = "value"
+	nilFieldValue        = "<nil>"
+	spewPointerString    = "<*>"
+	unexportedFieldValue = "<unexported>"
+)
 
 // tableRow is a map of fields which make up a row:
 type tableRow map[string]string
@@ -18,6 +24,11 @@ type table struct {
 	headers      []string
 	rows         []tableRow
 	maxRowLength int
+}
+
+// setField sets a named field with a given value:
+func (r tableRow) setField(field, value string) {
+	r[field] = strings.ReplaceAll(value, spewPointerString, "")
 }
 
 // addHeader adds a header field:
