@@ -1,7 +1,6 @@
 package tableprinter
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -51,7 +50,7 @@ func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 
 	// Just add the one value:
 	table.addHeader(defaultFieldName)
-	row[defaultFieldName] = fmt.Sprintf("%v", value)
+	row[defaultFieldName] = p.spewConfig.Sprintf("%v", value)
 	table.addRow(row)
 
 	return table, nil
@@ -71,13 +70,7 @@ func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 	// Add the map fields to the table:
 	for fieldName, fieldValue := range assertedMap {
 		table.addHeader(fieldName)
-
-		// Handle pointers differently:
-		if reflect.TypeOf(fieldValue).Kind() == reflect.Ptr {
-			row[fieldName] = fmt.Sprintf("%v", reflect.ValueOf(fieldValue).Elem())
-		} else {
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
-		}
+		row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue)
 	}
 
 	// Add the row to the table:
@@ -121,15 +114,9 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 	for i := 0; i < reflectedType.NumField(); i++ {
 		fieldName := reflectedType.Field(i).Name
 		table.addHeader(fieldName)
-
-		// Handle pointers differently:
-		if reflectedType.Field(i).Type.Kind() == reflect.Ptr {
-			fieldValue := reflectedValue.Field(i).Elem()
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
-		} else {
-			fieldValue := reflectedValue.Field(i)
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
-		}
+		fieldValue := reflectedValue.Field(i)
+		row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue)
+		p.spewConfig.Printf("%s => %v\n", fieldName, reflectedValue.Field(i))
 	}
 
 	// Add the row to the table:

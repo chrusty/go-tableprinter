@@ -152,9 +152,9 @@ func TestTablePrinter(t *testing.T) {
 	assert.NotNil(t, tablePrinter)
 
 	// Test various types of input:
-	testPrint(t, tablePrinter, outputBuffer, basicTests)
-	testPrint(t, tablePrinter, outputBuffer, mapTests)
-	testPrint(t, tablePrinter, outputBuffer, sliceTests)
+	// testPrint(t, tablePrinter, outputBuffer, basicTests)
+	// testPrint(t, tablePrinter, outputBuffer, mapTests)
+	// testPrint(t, tablePrinter, outputBuffer, sliceTests)
 	testPrint(t, tablePrinter, outputBuffer, structTests)
 }
 
