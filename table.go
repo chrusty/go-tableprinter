@@ -53,6 +53,8 @@ func (t *table) bytes(borders bool) ([]byte, error) {
 	// Tables without borders:
 	tw.SetBorder(borders)
 
+	tw.SetAutoWrapText(false)
+
 	// Append the rows:
 	for _, row := range t.rows {
 		tw.Append(t.sortRow(row))

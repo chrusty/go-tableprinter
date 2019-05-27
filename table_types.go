@@ -1,13 +1,15 @@
 package tableprinter
 
 import (
-	"fmt"
 	"reflect"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func (p *Printer) makeTable(value interface{}) (*table, error) {
+
+	// Check that we've not been given a nil value:
+	if value == nil {
+		return nil, ErrNoData
+	}
 
 	// Take a different approach depending on the type of data that was provided:
 	switch reflect.TypeOf(value).Kind() {
@@ -41,7 +43,7 @@ func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 
 	// Just add the one value:
 	table.addHeader(defaultFieldName)
-	row[defaultFieldName] = fmt.Sprintf("%v", value)
+	row[defaultFieldName] = p.spewConfig.Sprintf("%v", value)
 	table.addRow(row)
 
 	return table, nil
@@ -63,10 +65,14 @@ func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 		table.addHeader(fieldName)
 		switch reflect.TypeOf(fieldValue).Kind() {
 		case reflect.Ptr:
-			fmt.Println("Ptr")
-			row[fieldName] = fmt.Sprintf("%v", reflect.ValueOf(fieldValue).Elem())
+			reflectedFieldValue := reflect.ValueOf(fieldValue).Elem()
+			if reflectedFieldValue.CanInterface() {
+				row[fieldName] = p.spewConfig.Sprintf("%v", reflectedFieldValue.Interface())
+				continue
+			}
+			row[fieldName] = p.spewConfig.Sprintf("%v", reflectedFieldValue)
 		default:
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+			row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue)
 		}
 	}
 
@@ -103,8 +109,6 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 	var table = new(table)
 	var row = make(tableRow)
 
-	spew.Dump(value)
-
 	// Reflect the value to gain access to its elements:
 	reflectedType := reflect.TypeOf(value)
 	reflectedValue := reflect.ValueOf(value)
@@ -115,25 +119,26 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 		fieldValue := reflectedValue.Field(i)
 		table.addHeader(fieldName)
 
-		switch reflectedType.Field(i).Type.Kind() {
-		case reflect.Ptr:
-			fmt.Println("Ptr")
-			row[fieldName] = fmt.Sprintf("%v", fieldValue.Elem())
-		case reflect.Slice:
-			fmt.Println("Slice")
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
-		default:
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		// We can only work with exported fields:
+		if !fieldValue.CanInterface() {
+			row[fieldName] = "<unexported>"
+			continue
 		}
 
-		// if fieldValue.CanInterface() {
-		// 	row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Interface())
-		// 	fmt.Printf("%v\n", fieldValue.Interface())
-		// } else {
-		// 	row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Elem())
-		// 	fmt.Printf("%v\n", fieldValue.String())
-		// }
+		// Type switch:
+		switch reflectedType.Field(i).Type.Kind() {
 
+		// Pointers can be nil, so we need to check this (or just take the Elem() value):
+		case reflect.Ptr:
+			if fieldValue.IsNil() {
+				row[fieldName] = "<nil>"
+				continue
+			}
+			row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Elem().Interface())
+
+		default:
+			row[fieldName] = p.spewConfig.Sprintf("%v", fieldValue.Interface())
+		}
 	}
 
 	// Add the row to the table:

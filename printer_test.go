@@ -14,16 +14,19 @@ type testCase struct {
 }
 
 type nestedCruft struct {
-	cruftiness float32
-	name       string
+	Cruftiness float32
+	Name       string
 }
 
 type complexStructure struct {
-	name     string
-	crufts   []*nestedCruft
-	weight   int
-	crufty   *bool
-	shitNuts map[string]interface{}
+	Name         string
+	Cruft        nestedCruft
+	NestedCruft  *nestedCruft
+	Crufts       []*nestedCruft
+	Weight       int
+	Crufty       *bool
+	CruftMap     map[string]interface{}
+	privateField string
 }
 
 var (
@@ -72,9 +75,9 @@ var (
 		},
 		"Slice of structs": {
 			inputValue: []struct {
-				name   string
-				age    int
-				crufty bool
+				Name   string
+				Age    int
+				Crufty bool
 			}{
 				{
 					"prawn_struct_1",
@@ -96,9 +99,9 @@ var (
 		},
 		"Slice of pointers": {
 			inputValue: []*struct {
-				name   string
-				age    int
-				crufty bool
+				Name   string
+				Age    int
+				Crufty bool
 			}{
 				{
 					"prawn_struct_ptr_1",
@@ -118,9 +121,9 @@ var (
 	structTests = map[string]testCase{
 		"Struct": {
 			inputValue: struct {
-				name   string
-				age    int
-				crufty bool
+				Name   string
+				Age    int
+				Crufty bool
 			}{
 				"prawn_struct",
 				8888,
@@ -130,9 +133,9 @@ var (
 		},
 		"Struct pointer": {
 			inputValue: &struct {
-				name   string
-				age    int
-				crufty bool
+				Name   string
+				Age    int
+				Crufty bool
 			}{
 				"prawn_struct_pointer",
 				9999,
@@ -142,9 +145,9 @@ var (
 		},
 		"Struct with pointers": {
 			inputValue: struct {
-				name   string
-				age    int
-				crufty *bool
+				Name   string
+				Age    int
+				Crufty *bool
 			}{
 				"prawn_struct_pointer",
 				9999,
@@ -196,24 +199,35 @@ func testPrint(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffe
 func testComplexStructure(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffer) {
 
 	testStructure := complexStructure{
-		name:   "Complex cruft",
-		crufty: new(bool),
-		weight: 99,
-		crufts: []*nestedCruft{
+		Name:   "Complex cruft",
+		Crufty: new(bool),
+		Weight: 99,
+		Cruft: nestedCruft{
+			Cruftiness: 99.99,
+			Name:       "cruft5",
+		},
+		Crufts: []*nestedCruft{
 			{
-				cruftiness: 33.3,
-				name:       "cruft1",
+				Cruftiness: 33.3,
+				Name:       "cruft1",
 			},
 		},
-		shitNuts: map[string]interface{}{
-			"crufty":     true,
-			"arse_balls": 55,
-			"anus": nestedCruft{
-				cruftiness: 66.6,
-				name:       "cruft2",
+		CruftMap: map[string]interface{}{
+			"cruft_bool": true,
+			"cruft_int":  55,
+			"cruft_struct": nestedCruft{
+				Cruftiness: 66.6,
+				Name:       "cruft2",
 			},
 		},
 	}
 
-	tableprinter.Print(testStructure)
+	// Reset the buffer:
+	outputBuffer.Reset()
+
+	err := tp.Print(testStructure)
+	assert.NoError(t, err)
+
+	// Compare the output:
+	assert.Equal(t, "cruft", outputBuffer.String())
 }
