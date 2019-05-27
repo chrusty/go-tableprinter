@@ -1,11 +1,15 @@
 package tableprinter
 
 import (
-	"fmt"
 	"reflect"
 )
 
 func (p *Printer) makeTable(value interface{}) (*table, error) {
+
+	// Check that we've not been given a nil value:
+	if value == nil {
+		return nil, ErrNoData
+	}
 
 	// Take a different approach depending on the type of data that was provided:
 	switch reflect.TypeOf(value).Kind() {
@@ -39,9 +43,8 @@ func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 
 	// Just add the one value:
 	table.addHeader(defaultFieldName)
-	row[defaultFieldName] = fmt.Sprintf("%v", value)
+	row.setField(defaultFieldName, p.spewConfig.Sprintf("%v", value))
 	table.addRow(row)
-
 	return table, nil
 }
 
@@ -59,18 +62,21 @@ func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 	// Add the map fields to the table:
 	for fieldName, fieldValue := range assertedMap {
 		table.addHeader(fieldName)
-
-		// Handle pointers differently:
-		if reflect.TypeOf(fieldValue).Kind() == reflect.Ptr {
-			row[fieldName] = fmt.Sprintf("%v", reflect.ValueOf(fieldValue).Elem())
-		} else {
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		switch reflect.TypeOf(fieldValue).Kind() {
+		case reflect.Ptr:
+			reflectedFieldValue := reflect.ValueOf(fieldValue).Elem()
+			if reflectedFieldValue.CanInterface() {
+				row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue.Interface()))
+				continue
+			}
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue))
+		default:
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue))
 		}
 	}
 
 	// Add the row to the table:
 	table.addRow(row)
-
 	return table, nil
 }
 
@@ -108,20 +114,32 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 	// Add the struct fields to the table:
 	for i := 0; i < reflectedType.NumField(); i++ {
 		fieldName := reflectedType.Field(i).Name
+		fieldValue := reflectedValue.Field(i)
 		table.addHeader(fieldName)
 
-		// Handle pointers differently:
-		if reflectedType.Field(i).Type.Kind() == reflect.Ptr {
-			fieldValue := reflectedValue.Field(i).Elem()
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
-		} else {
-			fieldValue := reflectedValue.Field(i)
-			row[fieldName] = fmt.Sprintf("%v", fieldValue)
+		// We can only work with exported fields:
+		if !fieldValue.CanInterface() {
+			row.setField(fieldName, unexportedFieldValue)
+			continue
+		}
+
+		// Type switch:
+		switch reflectedType.Field(i).Type.Kind() {
+
+		// Pointers can be nil, so we need to check this (or just take the Elem() value):
+		case reflect.Ptr:
+			if fieldValue.IsNil() {
+				row.setField(fieldName, nilFieldValue)
+				continue
+			}
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Elem().Interface()))
+
+		default:
+			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Interface()))
 		}
 	}
 
 	// Add the row to the table:
 	table.addRow(row)
-
 	return table, nil
 }

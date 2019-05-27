@@ -4,18 +4,31 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 // Printer takes care of marshaling interfaces to text tables:
 type Printer struct {
-	borders bool
-	output  io.Writer
+	borders    bool
+	output     io.Writer
+	spewConfig *spew.ConfigState
 }
 
 // New returns a new Printer, configured with default values:
 func New() *Printer {
+
+	spewConfig := spew.NewDefaultConfig()
+	spewConfig.DisableCapacities = true
+	spewConfig.DisableMethods = true
+	spewConfig.DisablePointerAddresses = true
+	spewConfig.DisablePointerMethods = true
+	spewConfig.SortKeys = true
+	spewConfig.SpewKeys = true
+
 	return &Printer{
-		output: os.Stdout,
+		output:     os.Stdout,
+		spewConfig: spewConfig,
 	}
 }
 
