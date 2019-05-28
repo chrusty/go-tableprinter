@@ -44,7 +44,9 @@ func main() {
 	}
 
 	// Use the custom printer to print the examples:
-	printer.Print(examples)
+	if err := printer.Print(examples); err != nil {
+		panic(err)
+	}
 
 	// Use the Marshal method to get bytes:
 	tableBytes, _ := printer.Marshal(examples)
