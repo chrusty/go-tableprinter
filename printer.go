@@ -23,7 +23,7 @@ func New() *Printer {
 	spewConfig.DisableCapacities = true
 	spewConfig.DisableMethods = false
 	spewConfig.DisablePointerAddresses = false
-	spewConfig.DisablePointerMethods = true
+	spewConfig.DisablePointerMethods = false
 	spewConfig.SortKeys = true
 	spewConfig.SpewKeys = true
 

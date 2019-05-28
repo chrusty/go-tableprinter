@@ -10,6 +10,7 @@ Print a formatted table from GoLang interfaces. This can be useful if you're bui
 * Interfaces can be printed straight to stdout
 * Optionally they can also be printed to any io.Writer (buffer, stderr, file etc)
 * You can also use the Marshal() function to render a table as bytes
+* Uses the String() method to render values (when available)
 
 ## Limitations
 * Currently unable to print unexported struct fields, similar to JSON or YAML (listed as `<unexported>`)
@@ -175,6 +176,9 @@ This table is 630B
 
 ### ToDo
 * Optional row numbering
+
+### 0.4.0
+* Detects and uses String() methods to render values
 
 ### 0.3.0
 * Optionally sort columns by headers

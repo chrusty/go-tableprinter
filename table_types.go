@@ -1,7 +1,6 @@
 package tableprinter
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -14,6 +13,11 @@ func (p *Printer) makeTable(value interface{}) (*table, error) {
 	// Check that we've not been given a nil value:
 	if value == nil {
 		return nil, ErrNoData
+	}
+
+	// See if we have an easily stringable interface:
+	if stringable, ok := value.(stringable); ok {
+		return p.tableFromBasicValue(stringable.String())
 	}
 
 	// Take a different approach depending on the type of data that was provided:
@@ -41,11 +45,12 @@ func (p *Printer) makeTable(value interface{}) (*table, error) {
 	}
 }
 
+// formatValue determines how we display things:
 func (p *Printer) formatValue(value interface{}) string {
 
-	if shitballs, ok := value.(stringable); ok {
-		fmt.Printf("We have a stringable (%s)\n", shitballs.String())
-		return p.spewConfig.Sprintf("%s", shitballs.String())
+	// If this value has a String() method then we should use that:
+	if stringable, ok := value.(stringable); ok {
+		return p.spewConfig.Sprintf("%s", stringable.String())
 	}
 
 	return p.spewConfig.Sprintf("%v", value)
