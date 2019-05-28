@@ -4,6 +4,7 @@ import "io"
 
 var defaultTablePrinter *Printer
 
+// init establishes the default printer (which can be used without having to instantiate and maintian a *Printer in-code):
 func init() {
 	defaultTablePrinter = New()
 }
@@ -26,4 +27,9 @@ func SetBorder(borders bool) {
 // SetOutput configures the default printer with a specified output:
 func SetOutput(output io.Writer) {
 	defaultTablePrinter.output = output
+}
+
+// SetSortedHeaders configures the default printer to sort columns by their headers:
+func SetSortedHeaders(sortedHeaders bool) {
+	defaultTablePrinter.sortedHeaders = sortedHeaders
 }

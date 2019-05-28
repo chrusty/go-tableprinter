@@ -42,7 +42,7 @@ func (t *table) addRow(row tableRow) {
 }
 
 // bytes renders a table as bytes:
-func (t *table) bytes(borders bool) ([]byte, error) {
+func (t *table) bytes(sortedHeaders, borders bool) ([]byte, error) {
 
 	// Make sure we actually have some data:
 	if len(t.rows) == 0 {
@@ -56,7 +56,9 @@ func (t *table) bytes(borders bool) ([]byte, error) {
 	tw := tablewriter.NewWriter(tableBuffer)
 
 	// Sort the headers:
-	sort.Strings(t.headers)
+	if sortedHeaders {
+		sort.Strings(t.headers)
+	}
 
 	// Add the headers:
 	tw.SetHeader(t.headers)

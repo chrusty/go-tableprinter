@@ -164,7 +164,7 @@ func TestTablePrinter(t *testing.T) {
 	outputBuffer := bytes.NewBufferString("")
 
 	// Make a new TablePrinter:
-	tablePrinter := tableprinter.New().WithOutput(outputBuffer)
+	tablePrinter := tableprinter.New().WithBorders(false).WithOutput(outputBuffer).WithSortedHeaders(true)
 	assert.NotNil(t, tablePrinter)
 
 	// Test various types of input:
