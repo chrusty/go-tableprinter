@@ -15,7 +15,7 @@ Print a formatted table from GoLang interfaces. This can be useful if you're bui
 
 You can use this package to print tables either by using the default *Printer, or making your own (with specific config).
 
-### [Using the default printer](examples/default)
+### [Using the default printer](example/default)
 ```go
 package main
 
@@ -70,7 +70,6 @@ func main() {
 	tableprinter.Print(example)
 }
 ```
-Output:
 ```
   NAME  |  AGE  |    FAVOURITEWORDS     |             TAGS             | ISCRUFTY
 +-------+-------+-----------------------+------------------------------+----------+
@@ -101,7 +100,7 @@ Output:
 +-------+-----------------------+----------+-------+------------------------------+
 ```
 
-### [Using a custom printer](examples/custom)
+### [Using a custom printer](example/custom)
 ```go
 package main
 
@@ -150,7 +149,6 @@ func main() {
 	printer.Print(examples)
 }
 ```
-Output:
 ```
 +-------+---------------------------------------+----------+-----------+-------------------------------+
 |  AGE  |            FAVOURITEWORDS             | ISCRUFTY |   NAME    |             TAGS              |
