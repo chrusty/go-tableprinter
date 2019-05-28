@@ -15,9 +15,7 @@ Print a formatted table from GoLang interfaces. This can be useful if you're bui
 
 You can use this package to print tables either by using the default *Printer, or making your own (with specific config).
 
-### Default
-
-* Print a table from an interface:
+### [Using the default printer](examples/default)
 ```go
 package main
 
@@ -27,7 +25,7 @@ import (
 	"github.com/chrusty/go-tableprinter"
 )
 
-type ExampleType struct {
+type exampleType struct {
 	Name           string
 	Age            int
 	FavouriteWords []string
@@ -38,7 +36,7 @@ type ExampleType struct {
 func main() {
 
 	// Prepare some example data:
-	example := ExampleType{
+	example := exampleType{
 		Name:           "prawn",
 		Age:            15248,
 		FavouriteWords: []string{"Cruft", "Crufts", "Crufty"},
@@ -72,7 +70,7 @@ func main() {
 	tableprinter.Print(example)
 }
 ```
-Result:
+Output:
 ```
   NAME  |  AGE  |    FAVOURITEWORDS     |             TAGS             | ISCRUFTY
 +-------+-------+-----------------------+------------------------------+----------+
@@ -103,13 +101,64 @@ Result:
 +-------+-----------------------+----------+-------+------------------------------+
 ```
 
-### *Printer
-* Make a *Printer (`tp := tableprinter.New()`)
-* Make a *Printer with borders (`tp := tableprinter.New().WithBorders(true)`)
-* Make a *Printer with borders and unsorted columns (`tp := tableprinter.New().WithBorders(true).WithSortedHeaders(false)`)
-* Make a *Printer with a custom output (`tp := tablePrinter.New().WithOutput(os.Stderr)`)
-* Print a table from an interface (`err := tp.Print(interface)`)
-* Marshal a table from an interface if you'd rather do something else (other than printing) with the output (`tableBytes, err := tp.Marshal(interface)`)
+### [Using a custom printer](examples/custom)
+```go
+package main
+
+import (
+	"github.com/chrusty/go-tableprinter"
+)
+
+type exampleType struct {
+	Name           string
+	Age            int
+	FavouriteWords []string
+	Tags           map[string]interface{}
+	IsCrufty       bool
+}
+
+func main() {
+
+	// Make a custom printer with the default values:
+	printer := tableprinter.New().WithBorders(true)
+
+	// Prepare some example data (this time a slice):
+	examples := []exampleType{
+		{
+			Name:           "prawn",
+			Age:            15248,
+			FavouriteWords: []string{"Cruft", "Crufts", "Crufty"},
+			Tags: map[string]interface{}{
+				"crufty": false,
+				"grumpy": true,
+			},
+			IsCrufty: false,
+		},
+		{
+			Name:           "CruftLord",
+			Age:            99999,
+			FavouriteWords: []string{"CruftLord", "CruftMaster", "Darth Crufter"},
+			Tags: map[string]interface{}{
+				"crufty": true,
+				"grumpy": false,
+			},
+			IsCrufty: true,
+		},
+	}
+
+	// Use the custom printer to print the examples:
+	printer.Print(examples)
+}
+```
+Output:
+```
++-------+---------------------------------------+----------+-----------+-------------------------------+
+|  AGE  |            FAVOURITEWORDS             | ISCRUFTY |   NAME    |             TAGS              |
++-------+---------------------------------------+----------+-----------+-------------------------------+
+| 15248 | [Cruft Crufts Crufty]                 | false    | prawn     | map[crufty:false grumpy:true] |
+| 99999 | [CruftLord CruftMaster Darth Crufter] | true     | CruftLord | map[crufty:true grumpy:false] |
++-------+---------------------------------------+----------+-----------+-------------------------------+
+```
 
 
 

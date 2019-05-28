@@ -6,7 +6,7 @@ import (
 	"github.com/chrusty/go-tableprinter"
 )
 
-type ExampleType struct {
+type exampleType struct {
 	Name           string
 	Age            int
 	FavouriteWords []string
@@ -17,7 +17,7 @@ type ExampleType struct {
 func main() {
 
 	// Prepare some example data:
-	example := ExampleType{
+	example := exampleType{
 		Name:           "prawn",
 		Age:            15248,
 		FavouriteWords: []string{"Cruft", "Crufts", "Crufty"},
