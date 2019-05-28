@@ -1,8 +1,13 @@
 package tableprinter
 
 import (
+	"fmt"
 	"reflect"
 )
+
+type stringable interface {
+	String() string
+}
 
 func (p *Printer) makeTable(value interface{}) (*table, error) {
 
@@ -36,6 +41,16 @@ func (p *Printer) makeTable(value interface{}) (*table, error) {
 	}
 }
 
+func (p *Printer) formatValue(value interface{}) string {
+
+	if shitballs, ok := value.(stringable); ok {
+		fmt.Printf("We have a stringable (%s)\n", shitballs.String())
+		return p.spewConfig.Sprintf("%s", shitballs.String())
+	}
+
+	return p.spewConfig.Sprintf("%v", value)
+}
+
 // tableFromBasicValue turns an interface into a single column in a single row:
 func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 	var table = new(table)
@@ -43,7 +58,7 @@ func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 
 	// Just add the one value:
 	table.addHeader(defaultFieldName)
-	row.setField(defaultFieldName, p.spewConfig.Sprintf("%v", value))
+	row.setField(defaultFieldName, p.formatValue(value))
 	table.addRow(row)
 	return table, nil
 }
@@ -66,12 +81,12 @@ func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 		case reflect.Ptr:
 			reflectedFieldValue := reflect.ValueOf(fieldValue).Elem()
 			if reflectedFieldValue.CanInterface() {
-				row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue.Interface()))
+				row.setField(fieldName, p.formatValue(reflectedFieldValue.Interface()))
 				continue
 			}
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue))
+			row.setField(fieldName, p.formatValue(reflectedFieldValue))
 		default:
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue))
+			row.setField(fieldName, p.formatValue(fieldValue))
 		}
 	}
 
@@ -132,10 +147,10 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 				row.setField(fieldName, nilFieldValue)
 				continue
 			}
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Elem().Interface()))
+			row.setField(fieldName, p.formatValue(fieldValue.Elem().Interface()))
 
 		default:
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Interface()))
+			row.setField(fieldName, p.formatValue(fieldValue.Interface()))
 		}
 	}
 
