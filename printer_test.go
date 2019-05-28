@@ -164,7 +164,7 @@ func TestTablePrinter(t *testing.T) {
 	outputBuffer := bytes.NewBufferString("")
 
 	// Make a new TablePrinter:
-	tablePrinter := tableprinter.New().WithOutput(outputBuffer)
+	tablePrinter := tableprinter.New().WithBorders(false).WithOutput(outputBuffer).WithSortedHeaders(true)
 	assert.NotNil(t, tablePrinter)
 
 	// Test various types of input:
@@ -195,6 +195,14 @@ func testPrint(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffe
 
 			// Compare the output:
 			assert.Equal(t, tc.expectedOutput, outputBuffer.String())
+
+			// Marshal as bytes:
+			tableBytes, err := tp.Marshal(tc.inputValue)
+			if err != nil {
+				assert.NoError(t, err)
+				return
+			}
+			assert.Equal(t, len(outputBuffer.Bytes()), len(tableBytes))
 		})
 	}
 }
