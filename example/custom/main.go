@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/chrusty/go-tableprinter"
 )
 
@@ -43,4 +45,8 @@ func main() {
 
 	// Use the custom printer to print the examples:
 	printer.Print(examples)
+
+	// Use the Marshal method to get bytes:
+	tableBytes, _ := printer.Marshal(examples)
+	fmt.Printf("\nThis table is %dB\n", len(tableBytes))
 }

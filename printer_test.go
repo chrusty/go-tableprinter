@@ -195,6 +195,14 @@ func testPrint(t *testing.T, tp *tableprinter.Printer, outputBuffer *bytes.Buffe
 
 			// Compare the output:
 			assert.Equal(t, tc.expectedOutput, outputBuffer.String())
+
+			// Marshal as bytes:
+			tableBytes, err := tp.Marshal(tc.inputValue)
+			if err != nil {
+				assert.NoError(t, err)
+				return
+			}
+			assert.Equal(t, len(outputBuffer.Bytes()), len(tableBytes))
 		})
 	}
 }

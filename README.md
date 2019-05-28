@@ -7,6 +7,9 @@ Print a formatted table from GoLang interfaces. This can be useful if you're bui
 * Tables can optionally have borders (disabled by default)
 * Requires no modification to existing data structures
 * Nil values are listed as `<nil>`
+* Interfaces can be printed straight to stdout
+* Optionally they can also be printed to any io.Writer (buffer, stderr, file etc)
+* You can also use the Marshal() function to render a table as bytes
 
 ## Limitations
 * Currently unable to print unexported struct fields, similar to JSON or YAML (listed as `<unexported>`)
@@ -105,6 +108,8 @@ func main() {
 package main
 
 import (
+	"fmt"
+
 	"github.com/chrusty/go-tableprinter"
 )
 
@@ -147,7 +152,12 @@ func main() {
 
 	// Use the custom printer to print the examples:
 	printer.Print(examples)
+
+	// Use the Marshal method to get bytes:
+	tableBytes, _ := printer.Marshal(examples)
+	fmt.Printf("\nThis table is %dB\n", len(tableBytes))
 }
+
 ```
 ```
 +-------+---------------------------------------+----------+-----------+-------------------------------+
@@ -156,11 +166,9 @@ func main() {
 | 15248 | [Cruft Crufts Crufty]                 | false    | prawn     | map[crufty:false grumpy:true] |
 | 99999 | [CruftLord CruftMaster Darth Crufter] | true     | CruftLord | map[crufty:true grumpy:false] |
 +-------+---------------------------------------+----------+-----------+-------------------------------+
+
+This table is 630B
 ```
-
-
-
-
 
 ## History
 
