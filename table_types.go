@@ -4,11 +4,20 @@ import (
 	"reflect"
 )
 
+type stringable interface {
+	String() string
+}
+
 func (p *Printer) makeTable(value interface{}) (*table, error) {
 
 	// Check that we've not been given a nil value:
 	if value == nil {
 		return nil, ErrNoData
+	}
+
+	// See if we have an easily stringable interface:
+	if stringable, ok := value.(stringable); ok {
+		return p.tableFromBasicValue(stringable.String())
 	}
 
 	// Take a different approach depending on the type of data that was provided:
@@ -36,6 +45,17 @@ func (p *Printer) makeTable(value interface{}) (*table, error) {
 	}
 }
 
+// formatValue determines how we display things:
+func (p *Printer) formatValue(value interface{}) string {
+
+	// If this value has a String() method then we should use that:
+	if stringable, ok := value.(stringable); ok {
+		return p.spewConfig.Sprintf("%s", stringable.String())
+	}
+
+	return p.spewConfig.Sprintf("%v", value)
+}
+
 // tableFromBasicValue turns an interface into a single column in a single row:
 func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 	var table = new(table)
@@ -43,7 +63,7 @@ func (p *Printer) tableFromBasicValue(value interface{}) (*table, error) {
 
 	// Just add the one value:
 	table.addHeader(defaultFieldName)
-	row.setField(defaultFieldName, p.spewConfig.Sprintf("%v", value))
+	row.setField(defaultFieldName, p.formatValue(value))
 	table.addRow(row)
 	return table, nil
 }
@@ -66,12 +86,12 @@ func (p *Printer) tableFromMapValue(value interface{}) (*table, error) {
 		case reflect.Ptr:
 			reflectedFieldValue := reflect.ValueOf(fieldValue).Elem()
 			if reflectedFieldValue.CanInterface() {
-				row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue.Interface()))
+				row.setField(fieldName, p.formatValue(reflectedFieldValue.Interface()))
 				continue
 			}
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", reflectedFieldValue))
+			row.setField(fieldName, p.formatValue(reflectedFieldValue))
 		default:
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue))
+			row.setField(fieldName, p.formatValue(fieldValue))
 		}
 	}
 
@@ -132,10 +152,10 @@ func (p *Printer) tableFromStructValue(value interface{}) (*table, error) {
 				row.setField(fieldName, nilFieldValue)
 				continue
 			}
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Elem().Interface()))
+			row.setField(fieldName, p.formatValue(fieldValue.Elem().Interface()))
 
 		default:
-			row.setField(fieldName, p.spewConfig.Sprintf("%v", fieldValue.Interface()))
+			row.setField(fieldName, p.formatValue(fieldValue.Interface()))
 		}
 	}
 

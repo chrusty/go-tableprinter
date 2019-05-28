@@ -2,7 +2,9 @@ package tableprinter_test
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/chrusty/go-tableprinter"
 	"github.com/stretchr/testify/assert"
@@ -18,8 +20,13 @@ type nestedCruft struct {
 	Name       string
 }
 
+func (n *nestedCruft) String() string {
+	return fmt.Sprintf("%s: (Cruftiness: %v)", n.Name, n.Cruftiness)
+}
+
 type complexStructure struct {
 	Name         string
+	Started      time.Time
 	Cruft        nestedCruft
 	NestedCruft  *nestedCruft
 	Crufts       []*nestedCruft
@@ -30,6 +37,8 @@ type complexStructure struct {
 }
 
 var (
+	testTime, _ = time.Parse(time.RFC3339, "2019-05-29T12:19:20Z")
+
 	basicTests = map[string]testCase{
 		"Basic string": {
 			inputValue:     "cruft",
@@ -46,6 +55,10 @@ var (
 		"Basic pointer": {
 			inputValue:     new(bool),
 			expectedOutput: "  VALUE  \n+-------+\n  false  \n",
+		},
+		"Basic time": {
+			inputValue:     testTime.UTC(),
+			expectedOutput: "              VALUE              \n+-------------------------------+\n  2019-05-29 12:19:20 +0000 UTC  \n",
 		},
 	}
 
@@ -211,9 +224,10 @@ func testComplexStructure(t *testing.T, tp *tableprinter.Printer, outputBuffer *
 	t.Run("Complex structure", func(t *testing.T) {
 
 		testStructure := complexStructure{
-			Name:   "Complex cruft",
-			Crufty: new(bool),
-			Weight: 99,
+			Name:    "Complex cruft",
+			Crufty:  new(bool),
+			Started: testTime.UTC(),
+			Weight:  99,
 			Cruft: nestedCruft{
 				Cruftiness: 99.99,
 				Name:       "cruft5",
@@ -242,7 +256,7 @@ func testComplexStructure(t *testing.T, tp *tableprinter.Printer, outputBuffer *
 		assert.NoError(t, err)
 
 		// Compare the output:
-		assert.Equal(t, "      CRUFT      |                           CRUFTMAP                           |     CRUFTS      | CRUFTY |     NAME      | NESTEDCRUFT | WEIGHT | PRIVATEFIELD  \n+----------------+--------------------------------------------------------------+-----------------+--------+---------------+-------------+--------+--------------+\n  {99.99 cruft5} | map[cruft_bool:true cruft_int:55 cruft_struct:{66.6 cruft2}] | [{33.3 cruft1}] | false  | Complex cruft | <nil>       |     99 | <unexported>  \n", outputBuffer.String())
+		assert.Equal(t, "             CRUFT            |                                 CRUFTMAP                                  |            CRUFTS            | CRUFTY |     NAME      | NESTEDCRUFT |            STARTED            | WEIGHT | PRIVATEFIELD  \n+-----------------------------+---------------------------------------------------------------------------+------------------------------+--------+---------------+-------------+-------------------------------+--------+--------------+\n  cruft5: (Cruftiness: 99.99) | map[cruft_bool:true cruft_int:55 cruft_struct:cruft2: (Cruftiness: 66.6)] | [cruft1: (Cruftiness: 33.3)] | false  | Complex cruft | <nil>       | 2019-05-29 12:19:20 +0000 UTC |     99 | <unexported>  \n", outputBuffer.String())
 	})
 }
 

@@ -21,9 +21,9 @@ func New() *Printer {
 
 	spewConfig := spew.NewDefaultConfig()
 	spewConfig.DisableCapacities = true
-	spewConfig.DisableMethods = true
-	spewConfig.DisablePointerAddresses = true
-	spewConfig.DisablePointerMethods = true
+	spewConfig.DisableMethods = false
+	spewConfig.DisablePointerAddresses = false
+	spewConfig.DisablePointerMethods = false
 	spewConfig.SortKeys = true
 	spewConfig.SpewKeys = true
 
