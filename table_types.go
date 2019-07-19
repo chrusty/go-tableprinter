@@ -14,6 +14,10 @@ func (p *Printer) makeTable(value interface{}) (*table, error) {
 	if value == nil {
 		return nil, ErrNoData
 	}
+	reflectedValueType := reflect.TypeOf(value)
+	if reflect.ValueOf(value) == reflect.Zero(reflectedValueType) {
+		return nil, ErrNoData
+	}
 
 	// See if we have an easily stringable interface:
 	if stringable, ok := value.(stringable); ok {
@@ -21,7 +25,7 @@ func (p *Printer) makeTable(value interface{}) (*table, error) {
 	}
 
 	// Take a different approach depending on the type of data that was provided:
-	switch reflect.TypeOf(value).Kind() {
+	switch reflectedValueType.Kind() {
 
 	// Maps get turned into a single-row table:
 	case reflect.Map:
